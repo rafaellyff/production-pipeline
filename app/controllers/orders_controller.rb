@@ -11,6 +11,19 @@ class OrdersController < ApplicationController
 	def show
 		render json: @order
 	end
+
+	#GET /orders/consult_status/
+	def consult_status
+		@order = Order.filter_by_reference(params[:reference]) if params[:reference].present?
+		@order = Order.filter_by_client_name(params[:client_name]) if params[:client_name].present?
+		render json: @order
+	end
+
+	#GET /orders/consult_purchase_channel
+	def consult_purchase_channel
+		@orders = Order.filter_by_purchase_channel(params[:purchase_channel]).filter_by_status("ready") if params[:purchase_channel].present?
+		render json: @orders
+	end
 	
 	# POST /orders
 	def create
@@ -47,4 +60,5 @@ class OrdersController < ApplicationController
 		def order_params
 			params.require(:order).permit(:reference, :purchase_channel, :client_name, :address, :delivery_service, :total_value, :line_items, :status)
 		end
+
 end
