@@ -52,13 +52,12 @@ class OrdersController < ApplicationController
 	
 	private
 		# Use callbacks to share common setup or constraints between actions.
-		def set_contact
-			@order = Contact.find(params[:id])
+		def set_order
+			@order = Order.find(params[:id])
 		end
 	
 		# Only allow a trusted parameter "white list" through.
 		def order_params
 			params.require(:order).permit(:reference, :purchase_channel, :client_name, :address, :delivery_service, :total_value, :line_items, :status)
 		end
-
 end

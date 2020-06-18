@@ -19,11 +19,12 @@ class Order < ApplicationRecord
     end
 
     def generate_reference
-        reference = "P#{Date.today.year}" + ([*('A'..'Z'),*('0'..'9'),*('s'..'z')]).sample(4).join
+        reference = ([*('A'..'Z'),*('0'..'9'),*('s'..'z')]).sample(8).join
 	    return reference
     end
 
     def update_status_by_batch(group_orders, status)
+        orders = group_orders.to_a
         Order.where('id IN (?)', group_orders).update_all(status: status, updated_at: Time.zone.now)
     end
 end
