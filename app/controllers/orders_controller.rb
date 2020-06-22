@@ -1,28 +1,39 @@
 class OrdersController < ApplicationController
-	before_action :set_order, only: [:show, :update] #, :destroy]
-
+	
 	# GET /orders
 	def index
 		@orders = Order.all
 		render json: @orders
 	end
 	
-	# GET /orders/1
-	def show
-		render json: @order
-	end
 
 	#GET /orders/consult_status/
 	def consult_status
-		@order = Order.filter_by_reference(params[:reference]) if params[:reference].present?
-		@order = Order.filter_by_client_name(params[:client_name]) if params[:client_name].present?
-		render json: @order
+		if params[:reference].blank? && params[:client_name].blank?
+			render json: { message: "No search parameters sent" }, status: 400
+		else
+			@order = Order.filter_by_reference(params[:reference]) if params[:reference].present?
+			@order = Order.filter_by_client_name(params[:client_name]).limit(10) if params[:client_name].present?
+
+			render json: @order
+		end
+		
 	end
 
-	#GET /orders/consult_purchase_channel
-	def consult_purchase_channel
-		@orders = Order.filter_by_purchase_channel(params[:purchase_channel]).filter_by_status("ready") if params[:purchase_channel].present?
-		render json: @orders
+	#GET /orders/consult_pipeline
+	def consult_pipeline
+		if params[:purchase_channel].blank? && params[:status].blank?
+			render json: { message: "No search parameters sent" }, status: 400
+		else
+			if params[:purchase_channel].present? && params[:status].present?
+				@orders = Order.filter_by_purchase_channel(params[:purchase_channel]).filter_by_status(params[:status])
+			else 
+				@orders = Order.filter_by_purchase_channel(params[:purchase_channel]) if params[:purchase_channel].present?
+				@orders = Order.filter_by_status(params[:status]) if params[:status].present?
+			end
+		  
+			render json: @orders
+		end
 	end
 	
 	# POST /orders
@@ -36,27 +47,9 @@ class OrdersController < ApplicationController
 		end
 	end
 	
-	# PATCH/PUT /orders/1
-	def update
-		if @order.update(order_params)
-			render json: @order
-		else
-			render json: @order.errors, status: :unprocessable_entity
-		end
-	end
-	
-	# DELETE /orders/1
-	# def destroy
-	# 	@order.destroy
-	# end
 	
 	private
-		# Use callbacks to share common setup or constraints between actions.
-		def set_order
-			@order = Order.find(params[:id])
-		end
 	
-		# Only allow a trusted parameter "white list" through.
 		def order_params
 			params.require(:order).permit(:reference, :purchase_channel, :client_name, :address, :delivery_service, :total_value, :line_items, :status)
 		end

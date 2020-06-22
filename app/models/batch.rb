@@ -11,11 +11,11 @@ class Batch < ApplicationRecord
 	    return reference
     end
 
-    def validate_batch_orders(group_orders)
+	def self.check_batch_orders(group_orders,purchase_channel)
 		group_orders = group_orders.to_a
-		orders = Order.select(:purchase_channel).where('id IN (?)', group_orders)
-
-		if group_orders.length == orders.count && orders.distinct == 1
+		orders = Order.where(id: group_orders, purchase_channel: purchase_channel).count
+		
+		if group_orders.length == orders
 			return true
 		else
 			return false

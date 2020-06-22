@@ -8,14 +8,14 @@ class Order < ApplicationRecord
     scope :filter_by_purchase_channel, -> (purchase_channel) { where purchase_channel: purchase_channel }  
     scope :filter_by_status, -> (status) { where status: status }  
 
-
-    before_save do
-        self.status = status.downcase
-    end
-    
     before_create do
         self.status = "ready"
         self.reference = self.generate_reference
+    end
+
+    before_save do
+        self.status = status.downcase if status.present?
+        self.delivery_service = delivery_service.downcase if delivery_service.present?
     end
 
     def generate_reference
@@ -23,8 +23,11 @@ class Order < ApplicationRecord
 	    return reference
     end
 
-    def update_status_by_batch(group_orders, status)
+    def self.update_status_by_batch(group_orders, status)
         orders = group_orders.to_a
-        Order.where('id IN (?)', group_orders).update_all(status: status, updated_at: Time.zone.now)
+        number_updates = Order.where(id: orders).update_all(status: status, updated_at: Time.zone.now)
+        
+        return number_updates
     end
+
 end
